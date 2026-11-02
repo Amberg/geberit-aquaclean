@@ -27,6 +27,14 @@ BINARY_SENSORS: list[tuple] = [
     ("is_dryer_running",          "Dryer Running",             None,                              "geberit:dryer-on",           "geberit:dryer-off",           FS_WITH_DRYER,   True),
 ]
 
+# data_key -> system parameter list (SPL) index the flag is derived from
+_SPL_PARAM: dict[str, int] = {
+    "is_user_sitting": 0,
+    "is_dryer_running": 1,
+    "is_lady_shower_running": 2,
+    "is_anal_shower_running": 3,
+}
+
 # (data_key, friendly_name, device_class, icon)
 # Binary sensors only available on AquaClean Alba devices.
 # Trailing "# DpId N" comments are machine-readable: run tools/generate-hacs-entity-docs.py after any change.
@@ -107,6 +115,18 @@ class AquaCleanBinarySensor(AquaCleanEntity, BinarySensorEntity):
         if self.coordinator.data is None:
             return None
         return bool(self.coordinator.data.get(self._key))
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        """Raw SPL value behind the flag (the flag itself is only value != 0)."""
+        param = _SPL_PARAM.get(self._key)
+        if param is None or self.coordinator.data is None:
+            return None
+        raw = self.coordinator.data.get("spl_raw") or {}
+        attrs: dict = {"spl_parameter": param, "raw_value": raw.get(str(param))}
+        if self._key == "is_user_sitting":
+            attrs["spl_raw"] = raw  # all live parameters, for analysing unknown models
+        return attrs
 
 
 class AquaCleanAlbaBinarySensor(AquaCleanEntity, BinarySensorEntity):

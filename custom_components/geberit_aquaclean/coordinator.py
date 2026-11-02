@@ -715,9 +715,8 @@ class AquaCleanCoordinator(DataUpdateCoordinator):
 
         ident = await client.base_client.get_device_identification_async(0)
         initial_op_date = await client.base_client.get_device_initial_operation_date()
-        state = await client.base_client.get_system_parameter_list_async(
-            [0, 1, 2, 3, 4, 5, 6, 7, 12, 13]  # 12=LidOffset, 13=ShowerArmOffset; data_array[8],[9]
-        )
+        spl_params = [0, 1, 2, 3, 4, 5, 6, 7, 12, 13]  # 12=LidOffset, 13=ShowerArmOffset; data_array[8],[9]
+        state = await client.base_client.get_system_parameter_list_async(spl_params)
         stats = await client.base_client.get_statistics_descale_async()
         soc_versions = await client.base_client.get_soc_application_versions_async()
         firmware_versions = await client.base_client.get_firmware_version_list_async()
@@ -746,6 +745,9 @@ class AquaCleanCoordinator(DataUpdateCoordinator):
             "shower_arm_offset_position": state.data_array[9], # SPL index 13, position 9
             "descaling_state": state.data_array[4],            # SPL index 4: 0=idle 1=preparing 2=waiting 3=running
             "descaling_duration_min": state.data_array[5],     # SPL index 5: countdown minutes
+            # Raw SPL values (parameter index -> value). The flags above only test != 0;
+            # other models (e.g. Sela) may use different values or a different mapping.
+            "spl_raw": {str(p): state.data_array[i] for i, p in enumerate(spl_params)},
             # Descale statistics
             "days_until_next_descale": stats.days_until_next_descale,
             "days_until_shower_restricted": stats.days_until_shower_restricted,
@@ -836,6 +838,7 @@ class AquaCleanCoordinator(DataUpdateCoordinator):
             "is_anal_shower_running": state.data_array[3] != 0,
             "is_lady_shower_running": False,
             "is_dryer_running": False,
+            "spl_raw": {str(p): state.data_array[p] for p in (0, 1, 2, 3)},
             "last_error_code": 0,
             # Mera-only keys set to None so Mera sensors show "Unknown" rather than crash
             "days_until_next_descale": None,
