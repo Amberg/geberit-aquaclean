@@ -30,6 +30,10 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# Fork Amberg: kein stündlicher Abruf der Geberit-Firmware-Cloud (prod.firmwarev1.services.geberit.com).
+# Die Firmware-/Cloud-Sensoren bleiben damit „unbekannt“. Auf True setzen, um den Abruf wieder einzuschalten.
+FIRMWARE_CLOUD_CHECK = False
+
 # Circuit breaker constants — match standalone bridge behaviour
 _CIRCUIT_OPEN_THRESHOLD = 5    # consecutive failures before opening circuit
 _CIRCUIT_OPEN_PROBE_SLEEP = 60  # extra seconds before each probe when circuit is open
@@ -593,7 +597,7 @@ class AquaCleanCoordinator(DataUpdateCoordinator):
 
             # Firmware cloud check: inline on first poll (result is None) and every 3600 s.
             fw = result_data.get("firmware_version")
-            if fw:
+            if fw and FIRMWARE_CLOUD_CHECK:
                 now_utc = datetime.now(timezone.utc)
                 should_check = (
                     self._firmware_update_result is None

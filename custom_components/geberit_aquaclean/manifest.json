@@ -5,7 +5,7 @@
   "documentation": "https://github.com/jens62/geberit-aquaclean",
   "issue_tracker": "https://github.com/jens62/geberit-aquaclean/issues",
   "requirements": [
-    "geberit-aquaclean @ git+https://github.com/jens62/geberit-aquaclean@v3.1.3b1"
+    "geberit-aquaclean @ git+https://github.com/Amberg/geberit-aquaclean@d1f87ca63768b6a217002c0464d59ba79852b438"
   ],
   "dependencies": [],
   "codeowners": ["@jens62"],
